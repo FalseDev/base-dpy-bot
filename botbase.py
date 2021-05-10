@@ -33,8 +33,10 @@ class Bot(commands.Bot):
         command_prefix: str,
         description: str,
         config: Config,
-        load_extensions=True,
-        loadjsk=True,
+        load_extensions: bool = True,
+        loadjsk: bool = True,
+        ignore_dms: bool = True,
+        respond_to_ping: bool = True,
     ):
         allowed_mentions = AllowedMentions(
             users=True, replied_user=True, roles=False, everyone=False
@@ -46,8 +48,10 @@ class Bot(commands.Bot):
             description=description,
             strip_after_prefix=True,
         )
-        self.config = config
-        self.prefix = command_prefix
+        self.config: Config = config
+        self.prefix: str = command_prefix
+        self.ignore_dms: bool = ignore_dms
+        self.respond_to_ping: bool = respond_to_ping
 
         if load_extensions:
             self.load_extensions(
@@ -99,13 +103,26 @@ class Bot(commands.Bot):
         print("Ready!")
 
     async def on_message(self, msg: Message):
+        # Don't respond to any bots
         if msg.author.bot:
             return
+
+        # Check whether to ignore DMs for everyone other than owner
+        if self.ignore_dms and not msg.guild and not await self.is_owner(msg.author):
+            return
+
+        # Don't try to respond when the bot has no send perms
+        if msg.guild and msg.guild.me and not msg.channel.permissions_for(msg.guild.me).send_messages:  # type: ignore
+            return
+
+        # Respond with prefix on ping
         user_id = self.user.id
-        if msg.content in (f"<@{user_id}>", f"<@!{user_id}>"):
+        if self.respond_to_ping and msg.content in (f"<@{user_id}>", f"<@!{user_id}>"):
             return await msg.reply(
                 "My prefix here is `{}`".format(await self.get_custom_prefix(None, msg))
             )
+
+        # Process commands
         await self.process_commands(msg)
 
     # Error listeners
