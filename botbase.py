@@ -1,7 +1,7 @@
 import contextlib
 import re
 import traceback
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from aiohttp import ClientSession
 from discord import (
@@ -34,6 +34,7 @@ class Bot(commands.Bot):
         description: str,
         config: Config,
         load_extensions: bool = True,
+        extentions: Sequence = (),
         loadjsk: bool = True,
         ignore_dms: bool = True,
         respond_to_ping: bool = True,
@@ -54,12 +55,7 @@ class Bot(commands.Bot):
         self.respond_to_ping: bool = respond_to_ping
 
         if load_extensions:
-            self.load_extensions(
-                (
-                    "cogs.core",
-                    "cogs.help_command",
-                )
-            )
+            self.load_extensions(extentions)
         if loadjsk:
             self.load_extension("jishaku")
 
