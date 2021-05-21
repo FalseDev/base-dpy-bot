@@ -1,7 +1,13 @@
 from bot import CustomBot
 from config import Config
 
-bot = CustomBot(
-    config=Config(),
-)
-bot.run()
+
+def main():
+    bot = CustomBot(
+        config=Config(),
+    )
+    bot.run()
+
+
+if __name__ == "__main__":
+    main()
